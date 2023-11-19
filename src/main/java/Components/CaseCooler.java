@@ -1,21 +1,30 @@
 package Components;
 
 import Enums.CaseCoolerSize;
-import lombok.Data;
+import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 @EqualsAndHashCode(callSuper = true)
-@Data
+@Entity
+@Table(name = "case_cooler")
+@Getter
+@Setter
 public class CaseCooler extends Component {
 
+    @Id
+    private Long id;
+
+    @Enumerated(EnumType.STRING)
     private CaseCoolerSize size;
 
     public CaseCooler(String modelName, CaseCoolerSize size) {
-        componentName = "Корпус";
         this.modelName = modelName;
         this.size = size;
     }
 
+    protected CaseCooler() {}
 
     @Override
     public boolean isCompatible(Component component) {
@@ -26,8 +35,13 @@ public class CaseCooler extends Component {
     }
 
     @Override
+    public String getComponentName() {
+        return "Кулер";
+    }
+
+    @Override
     public String toString() {
-        return componentName + " " + modelName;
+        return getComponentName() + " " + modelName;
     }
 
 }

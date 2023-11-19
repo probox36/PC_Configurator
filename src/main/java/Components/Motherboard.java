@@ -1,46 +1,69 @@
 package Components;
 
 import Enums.*;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import jakarta.persistence.*;
+import lombok.*;
+import java.util.Map;
 
-import java.util.HashMap;
-
-@Builder(builderMethodName = "requiredBuilder")
+@Entity
+@Table(name = "motherboard")
 @EqualsAndHashCode(callSuper = true)
-@Data
+@Getter
+@Setter
 public class Motherboard extends Component {
 
-    private String componentName;
-    private String modelName;
+    @Id
+    private Long id;
+
+    @Column(name = "compatible_socket")
+    @Enumerated(EnumType.STRING)
     private Socket compatibleSocket;
+
+    @Column(name = "ram_slots")
     private int RAMSlots;
+
+    @Column(name = "ram_generation")
+    @Enumerated(EnumType.STRING)
     private RAMGeneration ramGeneration;
+
+    @Column(name = "motherboard_size")
+    @Enumerated(EnumType.STRING)
     private MotherboardSize size;
-    private HashMap<DiskSocket, Integer> diskConnectors;
+
+    @Column(name = "max_cores")
+    private int maxCores;
+
+    @Column(name = "max_memory")
+    private int maxMemory;
+
+    @ElementCollection
+    @CollectionTable(name = "motherboard_disk_connectors", joinColumns = {@JoinColumn(name = "motherboard_id")})
+    @MapKeyColumn(name = "disk_socket")
+    @Column(name = "socket_num")
+    @MapKeyEnumerated(EnumType.STRING)
+    private Map<DiskSocket, Integer> diskConnectors;
 
     public Motherboard(String modelName, Socket compatibleSocket, int RAMSlots, RAMGeneration ramGeneration,
-                       MotherboardSize size, HashMap<DiskSocket, Integer> diskSockests) {
+                       MotherboardSize size, int maxCores, int maxMemory, Map<DiskSocket, Integer> diskSockets) {
         this.modelName = modelName;
         this.compatibleSocket = compatibleSocket;
         this.RAMSlots = RAMSlots;
         this.ramGeneration = ramGeneration;
         this.size = size;
-        this.diskConnectors = diskSockests;
+        this.maxCores = maxCores;
+        this.maxMemory = maxMemory;
+        this.diskConnectors = diskSockets;
     }
 
-    public static MotherboardBuilder builder(String modelName, Socket compatibleSocket, int RAMSlots,
-        RAMGeneration ramGeneration, MotherboardSize size, HashMap<DiskSocket, Integer> diskSockests) {
-        return requiredBuilder().componentName("Материнская плата").modelName(modelName).compatibleSocket(compatibleSocket)
-                .RAMSlots(RAMSlots).ramGeneration(ramGeneration).size(size).diskConnectors(diskSockests);
-    }
+    protected Motherboard() {}
 
     @Override
     public boolean isCompatible(Component component) {
-        if (component instanceof CPU
-                && !((CPU) component).getCompatibleSocket().equals(compatibleSocket)) {
-            return false;
+        if (component instanceof CPU) {
+            if (!((CPU) component).getCompatibleSocket().equals(compatibleSocket)
+                || ((CPU) component).getCores() > maxCores) {
+                return false;
+            }
         }
         if (component instanceof CoolingSystem
                 && !((CoolingSystem) component).getCompatibleSocket().equals(compatibleSocket)) {
@@ -48,7 +71,8 @@ public class Motherboard extends Component {
         }
         if (component instanceof PrimaryStorage) {
             DiskSocket socket = ((PrimaryStorage) component).getSocket();
-            if (diskConnectors.get(socket) < 1) {
+            Integer freeConnectors = diskConnectors.get(socket);
+            if (freeConnectors == null || freeConnectors < 1) {
                 return false;
             }
         }
@@ -60,8 +84,13 @@ public class Motherboard extends Component {
     }
 
     @Override
+    public String getComponentName() {
+        return "Материнская плата";
+    }
+
+    @Override
     public String toString() {
-        return componentName + " " + modelName;
+        return getComponentName() + " " + modelName;
     }
 
 }

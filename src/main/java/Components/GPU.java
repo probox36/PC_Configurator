@@ -1,29 +1,46 @@
 package Components;
 
-import Enums.Socket;
-import lombok.Data;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
+@Entity
+@Table(name = "gpu")
 @EqualsAndHashCode(callSuper = true)
-@Data
+@Getter
+@Setter
 public class GPU extends Component {
 
+    @Id
+    private Long id;
+
+    @Column(name = "graphical_processor")
     private String graphicalProcessor;
+
     private double memory;
 
     public GPU(String modelName) {
-        componentName = "Видеокарта";
         this.modelName = modelName;
     }
 
+    protected GPU() {}
 
     @Override
-    boolean isCompatible(Component component) {
+    public boolean isCompatible(Component component) {
         return true;
     }
 
     @Override
+    public String getComponentName() {
+        return "Видеокарта";
+    }
+
+    @Override
     public String toString() {
-        return componentName + " " + modelName;
+        return getComponentName() + " " + modelName;
     }
 }

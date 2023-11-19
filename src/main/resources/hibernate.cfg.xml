@@ -1,0 +1,45 @@
+<?xml version = "1.0" encoding = "utf-8"?>
+<!DOCTYPE hibernate-configuration SYSTEM
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+
+        <property name = "hibernate.dialect">
+            org.hibernate.dialect.MySQLDialect
+        </property>
+
+        <property name = "hibernate.connection.driver_class">
+            com.mysql.cj.jdbc.Driver
+        </property>
+
+        <property name = "hibernate.connection.url">
+            jdbc:mysql://localhost:3306/configurator_db
+        </property>
+
+        <property name = "hibernate.connection.username">
+            root
+        </property>
+
+        <property name = "hibernate.connection.password">
+            #Hoover_Dam
+        </property>
+
+        <property name = "hibernate.show_sql">
+            true
+        </property>
+
+        <property name="hibernate.id.new_generator_mappings">
+            false
+        </property>
+
+        <!-- List of XML mapping files -->
+        <!--        <mapping resource = "Employee.hbm.xml"/>-->
+
+    </session-factory>
+</hibernate-configuration>
+
+        <!--private final String url = "jdbc:mysql://localhost:3306/bot_db";
+            private final String adminUserName = "root";
+            private final String password = "#Hoover_Dam";
+            private final Connection connection = DriverManager.getConnection(url, adminUserName, password);
+            private final Statement statement = connection.createStatement();-->

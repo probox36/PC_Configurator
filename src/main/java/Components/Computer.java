@@ -2,57 +2,107 @@ package Components;
 
 import Enums.CaseCoolerSize;
 import Enums.DiskSocket;
-import lombok.Builder;
+import jakarta.persistence.*;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.*;
 
-@Builder
 @Getter
+@Entity
+@Table(name = "computer")
 public class Computer {
 
-    
+    @Id
+    @GeneratedValue (strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "cooling_system_id")
     private CoolingSystem coolingSystem;
+
+    @ManyToOne
+    @JoinColumn(name = "cpu_id")
     private CPU cpu;
+
+    @ManyToOne
+    @JoinColumn(name = "gpu_id")
     private GPU gpu;
-    private final Motherboard motherboard;
+
+    @ManyToOne
+    @JoinColumn(name = "motherboard_id")
+    private Motherboard motherboard;
+
+    @ManyToOne
+    @JoinColumn(name = "power_unit_id")
     private PowerUnit powerUnit;
+
+    @ManyToOne
+    @JoinColumn(name = "case_id")
     private Case cCase;
-    
-    private final ArrayList<PrimaryStorage> storage = new ArrayList<>();
-    private final ArrayList<RAM> ram = new ArrayList<>();
-    private final ArrayList<CaseCooler> coolers = new ArrayList<>();
 
-    private HashMap<CaseCoolerSize, Integer> freeCaseCoolerMounts;
-    private HashMap<DiskSocket, Integer> freeDiskConnectors;
+    @ElementCollection
+    @CollectionTable(name = "computer_storage", joinColumns = {@JoinColumn(name = "computer_id")})
+    private final List<PrimaryStorage> storage = new ArrayList<>();
 
+    @ElementCollection
+    @CollectionTable(name = "computer_ram", joinColumns = {@JoinColumn(name = "computer_id")})
+    private final List<RAM> ram = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "computer_coolers", joinColumns = {@JoinColumn(name = "computer_id")})
+    private final List<CaseCooler> coolers = new ArrayList<>();
+
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "computer_case_cooler_mounts", joinColumns = {@JoinColumn(name = "computer_id")})
+    @MapKeyColumn(name = "case_cooler_size")
+    @Column(name = "mount_num")
+    @MapKeyEnumerated(EnumType.STRING)
+    private Map<CaseCoolerSize, Integer> freeCaseCoolerMounts;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "computer_disk_connectors", joinColumns = {@JoinColumn(name = "computer_id")})
+    @Column(name = "connector_num")
+    @MapKeyColumn(name = "disk_socket")
+    @MapKeyEnumerated(EnumType.STRING)
+    private Map<DiskSocket, Integer> freeDiskConnectors;
+
+    @Column(name = "free_ram_slots")
     private int freeRAMSlots;
-    private int freeHDDSlots;
 
+    @Column(name = "free_hdd_mounts")
+    private int freeHDDMounts;
+
+    @Transient
     CompatibilityChecker checker = new CompatibilityChecker();
 
-    public ArrayList<Component> getComponents() {
-        ArrayList<Component> components = new ArrayList<>(
+    public List<Component> getComponents() {
+        List<Component> components = new ArrayList<>(
                 Arrays.asList(coolingSystem, cpu, gpu, motherboard, powerUnit, cCase));
         components.addAll(storage);
         components.addAll(ram);
         return components;
     }
 
+    protected Computer() {}
+
     public Computer(Case cCase, Motherboard motherboard) {
+        if (!checker.isCompatible(cCase, motherboard)) {
+            throw new RuntimeException("Motherboard is incompatible with the case");
+        }
+        this.cCase = cCase;
         this.motherboard = motherboard;
-        freeDiskConnectors = motherboard.getDiskConnectors();
+        freeDiskConnectors = new HashMap<>(motherboard.getDiskConnectors());
+        freeCaseCoolerMounts = new HashMap<>(cCase.getCaseCoolerMounts());
         freeRAMSlots = motherboard.getRAMSlots();
-        freeHDDSlots = cCase.getHDDMounts();
+        freeHDDMounts = cCase.getHDDMounts();
     }
 
     public void setCoolingSystem(CoolingSystem coolingSystem) {
         if (checker.isCompatible(coolingSystem)) {
             this.coolingSystem = coolingSystem;
         } else {
-            throw new RuntimeException("Component is incompatible with " + checker.getIncompatibility());
+            throw new RuntimeException(coolingSystem + " is incompatible with " + checker.getIncompatibility());
         }
     }
 
@@ -60,7 +110,7 @@ public class Computer {
         if (checker.isCompatible(cpu)) {
             this.cpu = cpu;
         } else {
-            throw new RuntimeException("Component is incompatible with " + checker.getIncompatibility());
+            throw new RuntimeException(cpu + " is incompatible with " + checker.getIncompatibility());
         }
     }
 
@@ -68,7 +118,7 @@ public class Computer {
         if (checker.isCompatible(gpu)) {
             this.gpu = gpu;
         } else {
-            throw new RuntimeException("Component is incompatible with " + checker.getIncompatibility());
+            throw new RuntimeException(gpu + " is incompatible with " + checker.getIncompatibility());
         }
     }
 
@@ -76,17 +126,17 @@ public class Computer {
         if (checker.isCompatible(powerUnit)) {
             this.powerUnit = powerUnit;
         } else {
-            throw new RuntimeException("Component is incompatible with " + checker.getIncompatibility());
+            throw new RuntimeException(powerUnit + " is incompatible with " + checker.getIncompatibility());
         }
     }
 
     public void addDisk(PrimaryStorage disk) {
         if (!checker.isCompatible(disk)) {
-            throw new RuntimeException("Component is incompatible with " + checker.getIncompatibility());
+            throw new RuntimeException(disk + " is incompatible with " + checker.getIncompatibility());
         }
         DiskSocket socket = disk.getSocket();
-        int freeSlots = freeDiskConnectors.get(socket);
-        if (freeSlots < 1) {
+        Integer freeSlots = freeDiskConnectors.get(socket);
+        if (freeSlots == null || freeSlots < 1) {
             throw new RuntimeException("Out of " + socket + " slots (tried to add " + disk + ")");
         }
         freeDiskConnectors.put(socket, freeSlots - 1);
@@ -95,7 +145,7 @@ public class Computer {
 
     public void addRAM(RAM ram) {
         if (!checker.isCompatible(ram)) {
-            throw new RuntimeException("Component is incompatible with " + checker.getIncompatibility());
+            throw new RuntimeException(ram + " is incompatible with " + checker.getIncompatibility());
         }
         if (freeRAMSlots < 1) {
             throw new RuntimeException("Out of RAM slots (tried to add " + ram + ")");
@@ -104,15 +154,15 @@ public class Computer {
         this.ram.add(ram);
     }
 
-    public void addCooler(CaseCooler cooler) throws Exception {
+    public void addCooler(CaseCooler cooler) {
         CaseCoolerSize size = cooler.getSize();
-        int freeMounts = freeCaseCoolerMounts.get(size);
+        Integer freeMounts = freeCaseCoolerMounts.get(size);
 
-        if (freeMounts < 1) {
-            throw new RuntimeException("Out of case" + size + "cooler mounts (tried to add " + cooler + ")");
+        if (freeMounts == null || freeMounts < 1) {
+            throw new RuntimeException("Out of " + size + " cooler mounts (tried to add " + cooler + ")");
         }
         if (!checker.isCompatible(cooler)) {
-            throw new RuntimeException("Component is incompatible with " + checker.getIncompatibility());
+            throw new RuntimeException(cooler + " is incompatible with " + checker.getIncompatibility());
         }
         freeCaseCoolerMounts.put(size, freeMounts - 1);
         this.coolers.add(cooler);
@@ -149,7 +199,7 @@ public class Computer {
     public double getPowerConsumption() {
         double consumption = 0;
         for (Component c: getComponents()) {
-            if (c != null) {
+            if (c != null && c.getPrice() != null) {
                 consumption += c.getPowerConsumption();
             }
         }
@@ -159,7 +209,7 @@ public class Computer {
     public double getTotalPrice() {
         double price = 0;
         for (Component c: getComponents()) {
-            if (c != null) {
+            if (c != null && c.getPrice() != null) {
                 price += c.getPrice();
             }
         }
@@ -173,7 +223,7 @@ public class Computer {
         public Component getIncompatibility() { return incompatibility; }
 
         public boolean isCompatible(Component component) {
-            ArrayList<Component> components = getComponents();
+            List<Component> components = getComponents();
             for (Component c: components) {
                 if (c != null && !c.isCompatible(component)) {
                     incompatibility = c;
@@ -182,6 +232,13 @@ public class Computer {
             }
             return true;
         }
-    }
 
+//        public <T> ArrayList cloneEnumArray(ArrayList<T> array) {
+//            Arr
+//        }
+
+        public boolean isCompatible(Component one, Component two) {
+            return one.isCompatible(two);
+        }
+    }
 }

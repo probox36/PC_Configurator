@@ -2,21 +2,35 @@ package Components;
 
 import Enums.CoolingSystemType;
 import Enums.Socket;
-import lombok.Data;
+import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
+@Entity
+@Table(name = "cooling_system")
 @EqualsAndHashCode(callSuper = true)
-@Data
+@Getter
+@Setter
 public class CoolingSystem extends Component {
 
+    @Id
+    private Long id;
+
+    @Column(name = "compatible_socket")
+    @Enumerated(EnumType.STRING)
     private Socket compatibleSocket;
+
+    @Enumerated(EnumType.STRING)
     private CoolingSystemType type;
 
-    public CoolingSystem(String modelName, Socket compatibleSocket) {
-        componentName = "Система охлаждения";
+    public CoolingSystem(String modelName, Socket compatibleSocket, CoolingSystemType type) {
         this.modelName = modelName;
         this.compatibleSocket = compatibleSocket;
+        this.type = type;
     }
+
+    protected CoolingSystem() {}
 
     @Override
     public boolean isCompatible(Component component) {
@@ -28,7 +42,12 @@ public class CoolingSystem extends Component {
     }
 
     @Override
+    public String getComponentName() {
+        return "Система охлаждения";
+    }
+
+    @Override
     public String toString() {
-        return componentName + " " + modelName;
+        return getComponentName() + " " + modelName;
     }
 }

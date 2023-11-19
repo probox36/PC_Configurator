@@ -1,22 +1,36 @@
 package Components;
 
 import Enums.RAMGeneration;
-import lombok.Data;
+import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
+@Entity
+@Table(name = "ram")
 @EqualsAndHashCode(callSuper = true)
-@Data
+@Getter
+@Setter
 public class RAM extends Component {
+
+    @Id
+    private Long id;
+
+    @Column(name = "ram_generation")
+    @Enumerated(EnumType.STRING)
     private RAMGeneration ramGeneration;
+
     private double frequency;
+
     private double capacity;
 
-    public RAM(String modelName) {
-        componentName = "Оперативная память";
-        stackable = true;
+    public RAM(String modelName, RAMGeneration generation, double capacity) {
         this.modelName = modelName;
+        this.ramGeneration = generation;
+        this.capacity = capacity;
     }
 
+    protected RAM() {}
 
     @Override
     public boolean isCompatible(Component component) {
@@ -27,8 +41,13 @@ public class RAM extends Component {
     }
 
     @Override
+    public String getComponentName() {
+        return "Оперативная память";
+    }
+
+    @Override
     public String toString() {
-        return componentName + " " + modelName;
+        return getComponentName() + " " + modelName;
     }
 
 }
