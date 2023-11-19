@@ -69,9 +69,4 @@ public class Case extends Component {
         return "Корпус";
     }
 
-    @Override
-    public String toString() {
-        return getComponentName() + " " + modelName;
-    }
-
 }

@@ -223,19 +223,32 @@ public class Computer {
         public Component getIncompatibility() { return incompatibility; }
 
         public boolean isCompatible(Component component) {
-            List<Component> components = getComponents();
-            for (Component c: components) {
-                if (c != null && !c.isCompatible(component)) {
-                    incompatibility = c;
+
+            if (component instanceof CaseCooler || component instanceof Motherboard) {
+                incompatibility = cCase;
+                return cCase.isCompatible(component);
+            }
+            if (component instanceof CoolingSystem ||
+                component instanceof CPU ||
+                component instanceof GPU ||
+                component instanceof RAM) {
+                incompatibility = motherboard;
+                    return motherboard.isCompatible(component);
+            }
+            if (component instanceof PrimaryStorage) {
+                if (!cCase.isCompatible(component)) {
+                    incompatibility = cCase;
                     return false;
                 }
+                if (!motherboard.isCompatible(component)) {
+                    incompatibility = motherboard;
+                    return false;
+                }
+                return true;
             }
             return true;
-        }
 
-//        public <T> ArrayList cloneEnumArray(ArrayList<T> array) {
-//            Arr
-//        }
+        }
 
         public boolean isCompatible(Component one, Component two) {
             return one.isCompatible(two);

@@ -45,9 +45,4 @@ public class RAM extends Component {
         return "Оперативная память";
     }
 
-    @Override
-    public String toString() {
-        return getComponentName() + " " + modelName;
-    }
-
 }

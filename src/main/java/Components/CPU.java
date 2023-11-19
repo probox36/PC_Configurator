@@ -58,9 +58,4 @@ public class CPU extends Component {
         return "Процессор";
     }
 
-    @Override
-    public String toString() {
-        return getComponentName() + " " + modelName;
-    }
-
 }

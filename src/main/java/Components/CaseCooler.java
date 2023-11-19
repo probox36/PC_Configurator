@@ -39,9 +39,4 @@ public class CaseCooler extends Component {
         return "Кулер";
     }
 
-    @Override
-    public String toString() {
-        return getComponentName() + " " + modelName;
-    }
-
 }

@@ -50,9 +50,4 @@ public class PrimaryStorage extends Component {
         return "Диск";
     }
 
-    @Override
-    public String toString() {
-        return getComponentName() + " " + modelName;
-    }
-
 }

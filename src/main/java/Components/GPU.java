@@ -39,8 +39,4 @@ public class GPU extends Component {
         return "Видеокарта";
     }
 
-    @Override
-    public String toString() {
-        return getComponentName() + " " + modelName;
-    }
 }

@@ -37,11 +37,6 @@ protected PowerUnit() {}
         return "Блок питания";
     }
 
-    @Override
-    public String toString() {
-        return getComponentName() + " " + modelName;
-    }
-
     public double getPower() { return powerConsumption * -1; }
 
 }

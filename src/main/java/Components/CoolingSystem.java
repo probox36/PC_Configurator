@@ -46,8 +46,4 @@ public class CoolingSystem extends Component {
         return "Система охлаждения";
     }
 
-    @Override
-    public String toString() {
-        return getComponentName() + " " + modelName;
-    }
 }

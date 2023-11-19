@@ -19,6 +19,8 @@ public class Motherboard extends Component {
     @Enumerated(EnumType.STRING)
     private Socket compatibleSocket;
 
+    private String chipset;
+
     @Column(name = "ram_slots")
     private int RAMSlots;
 
@@ -29,9 +31,6 @@ public class Motherboard extends Component {
     @Column(name = "motherboard_size")
     @Enumerated(EnumType.STRING)
     private MotherboardSize size;
-
-    @Column(name = "max_cores")
-    private int maxCores;
 
     @Column(name = "max_memory")
     private int maxMemory;
@@ -44,13 +43,12 @@ public class Motherboard extends Component {
     private Map<DiskSocket, Integer> diskConnectors;
 
     public Motherboard(String modelName, Socket compatibleSocket, int RAMSlots, RAMGeneration ramGeneration,
-                       MotherboardSize size, int maxCores, int maxMemory, Map<DiskSocket, Integer> diskSockets) {
+                       MotherboardSize size, int maxMemory, Map<DiskSocket, Integer> diskSockets) {
         this.modelName = modelName;
         this.compatibleSocket = compatibleSocket;
         this.RAMSlots = RAMSlots;
         this.ramGeneration = ramGeneration;
         this.size = size;
-        this.maxCores = maxCores;
         this.maxMemory = maxMemory;
         this.diskConnectors = diskSockets;
     }
@@ -60,8 +58,7 @@ public class Motherboard extends Component {
     @Override
     public boolean isCompatible(Component component) {
         if (component instanceof CPU) {
-            if (!((CPU) component).getCompatibleSocket().equals(compatibleSocket)
-                || ((CPU) component).getCores() > maxCores) {
+            if (!((CPU) component).getCompatibleSocket().equals(compatibleSocket)) {
                 return false;
             }
         }
@@ -86,11 +83,6 @@ public class Motherboard extends Component {
     @Override
     public String getComponentName() {
         return "Материнская плата";
-    }
-
-    @Override
-    public String toString() {
-        return getComponentName() + " " + modelName;
     }
 
 }
