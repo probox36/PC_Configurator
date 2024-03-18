@@ -1,4 +1,4 @@
-package Components;
+package Entities;
 
 import Enums.Socket;
 import jakarta.persistence.*;

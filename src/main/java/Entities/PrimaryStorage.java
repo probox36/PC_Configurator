@@ -1,36 +1,41 @@
-package Components;
+package Entities;
 
-import Enums.RAMGeneration;
+import Enums.DiskSocket;
+import Enums.DiskType;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "ram")
+@Table(name = "primary_storage")
 @EqualsAndHashCode(callSuper = true)
 @Getter
 @Setter
-public class RAM extends Component {
+public class PrimaryStorage extends Component {
 
     @Id
     private Long id;
 
-    @Column(name = "ram_generation")
+    @Column(name = "disk_type")
     @Enumerated(EnumType.STRING)
-    private RAMGeneration ramGeneration;
+    private DiskType diskType;
 
-    private double frequency;
+    private double speed;
 
     private double capacity;
 
-    public RAM(String modelName, RAMGeneration generation, double capacity) {
+    @Enumerated(EnumType.STRING)
+    private DiskSocket socket;
+
+    public PrimaryStorage(String modelName, DiskType diskType, DiskSocket socket, int capacity) {
         this.modelName = modelName;
-        this.ramGeneration = generation;
+        this.diskType = diskType;
+        this.socket = socket;
         this.capacity = capacity;
     }
 
-    protected RAM() {}
+    protected PrimaryStorage() {}
 
     @Override
     public boolean isCompatible(Component component) {
@@ -42,7 +47,7 @@ public class RAM extends Component {
 
     @Override
     public String getComponentName() {
-        return "Оперативная память";
+        return "Диск";
     }
 
 }

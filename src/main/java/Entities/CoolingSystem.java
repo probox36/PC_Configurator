@@ -1,4 +1,4 @@
-package Components;
+package Entities;
 
 import Enums.CoolingSystemType;
 import Enums.Socket;

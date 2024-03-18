@@ -1,42 +1,42 @@
-package Components;
+package Entities;
 
-import Enums.PowerUnitSize;
+import Enums.CaseCoolerSize;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity
-@Table(name = "power_unit")
 @EqualsAndHashCode(callSuper = true)
+@Entity
+@Table(name = "case_cooler")
 @Getter
 @Setter
-public class PowerUnit extends Component {
+public class CaseCooler extends Component {
 
     @Id
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private PowerUnitSize size;
+    private CaseCoolerSize size;
 
-    public PowerUnit(String modelName, PowerUnitSize size, int power) {
+    public CaseCooler(String modelName, CaseCoolerSize size) {
         this.modelName = modelName;
         this.size = size;
-        this.powerConsumption = power * -1;
     }
 
-protected PowerUnit() {}
+    protected CaseCooler() {}
 
     @Override
     public boolean isCompatible(Component component) {
+        if (component instanceof Case) {
+            return component.isCompatible(this);
+        }
         return true;
     }
 
     @Override
     public String getComponentName() {
-        return "Блок питания";
+        return "Кулер";
     }
-
-    public double getPower() { return powerConsumption * -1; }
 
 }

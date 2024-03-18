@@ -1,4 +1,4 @@
-package Components;
+package Entities;
 
 import Enums.*;
 import jakarta.persistence.*;
@@ -22,7 +22,7 @@ public class Motherboard extends Component {
     private String chipset;
 
     @Column(name = "ram_slots")
-    private int RAMSlots;
+    private int RamSlots;
 
     @Column(name = "ram_generation")
     @Enumerated(EnumType.STRING)
@@ -46,7 +46,7 @@ public class Motherboard extends Component {
                        MotherboardSize size, int maxMemory, Map<DiskSocket, Integer> diskSockets) {
         this.modelName = modelName;
         this.compatibleSocket = compatibleSocket;
-        this.RAMSlots = RAMSlots;
+        this.RamSlots = RAMSlots;
         this.ramGeneration = ramGeneration;
         this.size = size;
         this.maxMemory = maxMemory;

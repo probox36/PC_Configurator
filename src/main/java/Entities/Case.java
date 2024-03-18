@@ -1,9 +1,9 @@
-package Components;
+package Entities;
 
 import Enums.*;
 import jakarta.persistence.*;
 import lombok.*;
-import java.util.List;
+
 import java.util.Map;
 
 
@@ -32,10 +32,10 @@ public class Case extends Component {
     @Column(name = "hdd_mounts")
     private int HDDMounts;
 
-    @Enumerated(EnumType.STRING)
-    @ElementCollection
-    @CollectionTable(name = "case_features", joinColumns = @JoinColumn(name = "case_id"))
-    private List<CaseFeature> features;
+//    @Enumerated(EnumType.STRING)
+//    @ElementCollection
+//    @CollectionTable(name = "case_features", joinColumns = @JoinColumn(name = "case_id"))
+//    private List<CaseFeature> features;
 
     public Case(String modelName, MotherboardSize motherboardSize, PowerUnitSize powerUnitSize, int HDDMounts,
                 Map<CaseCoolerSize, Integer> caseCoolerMounts) {
