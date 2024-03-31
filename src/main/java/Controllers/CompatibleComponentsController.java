@@ -1,6 +1,7 @@
 package Controllers;
 
 import Database.Database;
+import Entities.CompatibilityWrapper;
 import Entities.Component;
 import Entities.Computer;
 import Entities.ComputerJsonModel;
@@ -17,9 +18,9 @@ public class CompatibleComponentsController {
 
     @CrossOrigin(origins = "*")
     @PostMapping(value = "/getCompatibleComponentsByComputer")
-    public List<Component> getCompatibleComponentsByComputer(@RequestBody String queryJson) {
+    public List<CompatibilityWrapper> getCompatibleComponentsByComputer(@RequestBody String queryJson) {
 
-        List<Component> response = new ArrayList<>();
+        List<CompatibilityWrapper> response = new ArrayList<>();
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -32,9 +33,11 @@ public class CompatibleComponentsController {
 
             Database database = new Database();
             List<Component> components = database.getComponents(requiredPartClass);
-            response = components.stream()
-                            .filter(component -> computer.isCompatible(component).toBoolean())
-                            .toList();
+
+            for (Component component: components) {
+                Computer.CheckResult result = computer.isCompatible(component);
+                response.add(new CompatibilityWrapper(component, result.toBoolean(), result.incompatibility().toString()));
+            }
 
         } catch (JsonProcessingException e) {
             System.out.println("Cannot deserialize following json:\n" + queryJson);
@@ -47,9 +50,9 @@ public class CompatibleComponentsController {
 
     @CrossOrigin(origins = "*")
     @PostMapping(value = "/getCompatibleComponentsByPart")
-    public List<Component> getCompatibleComponentsByPart(@RequestBody String queryJson) {
-
-        List<Component> response = new ArrayList<>();
+    public List<CompatibilityWrapper> getCompatibleComponentsByPart(@RequestBody String queryJson) {
+        System.out.println("getCompatibleComponentsByPart called!");
+        List<CompatibilityWrapper> response = new ArrayList<>();
 
         try {
             Database database = new Database();
@@ -66,9 +69,9 @@ public class CompatibleComponentsController {
             ).get(0);
 
             List<Component> components = database.getComponents(requiredPartClass);
-            response = components.stream()
-                    .filter(part::isCompatible)
-                    .toList();
+            response = components.stream().map(
+                    component -> new CompatibilityWrapper(component, part.isCompatible(component), part.toString())
+            ).toList();
 
         } catch (JsonProcessingException e) {
             System.out.println("Cannot deserialize following json:\n" + queryJson);
