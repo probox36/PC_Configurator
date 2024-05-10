@@ -7,8 +7,10 @@ import Entities.Computer;
 import Entities.ComputerJsonModel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.web.bind.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,11 +23,12 @@ public class CompatibleComponentsController {
     public List<CompatibilityWrapper> getCompatibleComponentsByComputer(@RequestBody String queryJson) {
 
         List<CompatibilityWrapper> response = new ArrayList<>();
+        String requiredPartClass = "";
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = objectMapper.readTree(queryJson);
-            String requiredPartClass = rootNode.get("requiredPartClass").asText();
+            requiredPartClass = rootNode.get("requiredPartClass").asText();
 
             JsonNode computerNode = rootNode.get("computer");
             ComputerJsonModel model = objectMapper.treeToValue(computerNode, ComputerJsonModel.class);
@@ -42,7 +45,11 @@ public class CompatibleComponentsController {
         } catch (JsonProcessingException e) {
             System.out.println("Cannot deserialize following json:\n" + queryJson);
         } catch (RuntimeException e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
+            throw new ResponseStatusException(
+                    HttpStatusCode.valueOf(404),
+                    "Resource not found (" + requiredPartClass + ")"
+            );
         }
 
         return response;
@@ -51,8 +58,8 @@ public class CompatibleComponentsController {
     @CrossOrigin(origins = "*")
     @PostMapping(value = "/getCompatibleComponentsByPart")
     public List<CompatibilityWrapper> getCompatibleComponentsByPart(@RequestBody String queryJson) {
-        System.out.println("getCompatibleComponentsByPart called!");
         List<CompatibilityWrapper> response = new ArrayList<>();
+        String requiredPartClass = "";
 
         try {
             Database database = new Database();
@@ -60,7 +67,7 @@ public class CompatibleComponentsController {
             JsonNode rootNode = objectMapper.readTree(queryJson);
             JsonNode partNode = rootNode.get("part");
 
-            String requiredPartClass = rootNode.get("requiredPartClass").asText();
+            requiredPartClass = rootNode.get("requiredPartClass").asText();
             String partClass = partNode.get("partClass").asText();
             int partId = partNode.get("partId").asInt();
 
@@ -76,7 +83,10 @@ public class CompatibleComponentsController {
         } catch (JsonProcessingException e) {
             System.out.println("Cannot deserialize following json:\n" + queryJson);
         } catch (RuntimeException e) {
-            System.out.println(e.getMessage());
+            throw new ResponseStatusException(
+                    HttpStatusCode.valueOf(404),
+                    "Resource not found (" + requiredPartClass + ")"
+            );
         }
 
         return response;

@@ -1,8 +1,8 @@
 package Entities;
 
 import Database.HibernateConfigurator;
-import ExceptionClasses.ComponentNotCompatibleException;
-import ExceptionClasses.ComputerNotInitializedException;
+import Exceptions.ComponentNotCompatibleException;
+import Exceptions.ComputerNotInitializedException;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.hibernate.Session;
@@ -18,14 +18,16 @@ public class ComputerJsonModel {
     public Computer convertToComputer() throws ComputerNotInitializedException, ComponentNotCompatibleException {
 
         if (caseId == null && motherboardId == null) {
-            throw new RuntimeException("Can't initialize computer without case or motherboard");
+            throw new ComputerNotInitializedException("Can't initialize computer without case or motherboard");
         }
 
         Session session = HibernateConfigurator.getSession();
         Motherboard motherboard = session.get(Motherboard.class, motherboardId);
         Case computerCase = session.get(Case.class, caseId);
 
-        return new Computer(computerCase, motherboard);
+        Computer computer = new Computer(computerCase, motherboard);
+        session.close();
+        return computer;
 
     }
 

@@ -2,8 +2,11 @@ package Entities;
 
 import Enums.CaseCoolerSize;
 import Enums.DiskSocket;
-import ExceptionClasses.ComponentNotCompatibleException;
-import ExceptionClasses.ComputerNotInitializedException;
+import Exceptions.ComponentNotCompatibleException;
+import Exceptions.ComputerNotInitializedException;
+import Exceptions.NoSlotsLeftException;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.ToString;
@@ -14,8 +17,9 @@ import java.util.*;
 @Getter
 @ToString
 @Table(name = "computer")
-public class Computer {
+public class Computer implements DBEntity {
 
+    @JsonIgnore
     @Id
     @GeneratedValue (strategy = GenerationType.IDENTITY)
     private Long id;
@@ -44,14 +48,17 @@ public class Computer {
     @JoinColumn(name = "case_id")
     private Case computerCase;
 
+    @JsonProperty("PrimaryStorage")
     @ElementCollection
     @CollectionTable(name = "computer_storage", joinColumns = {@JoinColumn(name = "computer_id")})
     private final List<PrimaryStorage> storage = new ArrayList<>();
 
+    @JsonProperty("RAM")
     @ElementCollection
     @CollectionTable(name = "computer_ram", joinColumns = {@JoinColumn(name = "computer_id")})
     private final List<RAM> ram = new ArrayList<>();
 
+    @JsonProperty("CaseCoolers")
     @ElementCollection
     @CollectionTable(name = "computer_coolers", joinColumns = {@JoinColumn(name = "computer_id")})
     private final List<CaseCooler> coolers = new ArrayList<>();
@@ -139,13 +146,13 @@ public class Computer {
 
     public void removePart(Component component) {
         switch (component.getClass().toString()) {
-            case "CoolingSystem" -> this.coolingSystem = null;
-            case "CPU" -> this.cpu = null;
-            case "GPU" -> this.gpu = null;
-            case "PowerUnit" -> this.powerUnit = (PowerUnit) component;
-            case "CaseCooler" -> removeCoolerById(coolers.indexOf((CaseCooler) component));
-            case "PrimaryStorage" -> removeDiskById(storage.indexOf((PrimaryStorage) component));
-            case "RAM" -> removeRAMById(ram.indexOf((RAM) component));
+            case "class Entities.CoolingSystem" -> this.coolingSystem = null;
+            case "class Entities.CPU" -> this.cpu = null;
+            case "class Entities.GPU" -> this.gpu = null;
+            case "class Entities.PowerUnit" -> this.powerUnit = (PowerUnit) component;
+            case "class Entities.CaseCooler" -> removeCoolerById(coolers.indexOf((CaseCooler) component));
+            case "class Entities.PrimaryStorage" -> removeDiskById(storage.indexOf((PrimaryStorage) component));
+            case "class Entities.RAM" -> removeRAMById(ram.indexOf((RAM) component));
         }
     }
 
@@ -154,40 +161,39 @@ public class Computer {
         assertCompatible(component);
 
         switch (component.getClass().toString()) {
-            case "CoolingSystem" -> this.coolingSystem = (CoolingSystem) component;
-            case "CPU" -> this.cpu = (CPU) component;
-            case "GPU" -> this.gpu = (GPU) component;
-            case "PowerUnit" -> this.powerUnit = (PowerUnit) component;
-            case "CaseCooler" -> {
+            case "class Entities.CoolingSystem" -> this.coolingSystem = (CoolingSystem) component;
+            case "class Entities.CPU" -> this.cpu = (CPU) component;
+            case "class Entities.GPU" -> this.gpu = (GPU) component;
+            case "class Entities.PowerUnit" -> this.powerUnit = (PowerUnit) component;
+            case "class Entities.CaseCooler" -> {
 
                 CaseCooler cooler = (CaseCooler) component;
                 CaseCoolerSize size = cooler.getSize();
                 Integer freeMounts = freeCaseCoolerMounts.get(size);
 
                 if (freeMounts == null || freeMounts < 1) {
-                    throw new RuntimeException("Out of " + size + " cooler mounts (tried to add " + cooler + ")");
+                    throw new NoSlotsLeftException("Out of " + size + " cooler mounts (tried to add " + cooler + ")");
                 }
                 freeCaseCoolerMounts.put(size, freeMounts - 1);
                 this.coolers.add(cooler);
             }
 
-            case "PrimaryStorage" -> {
+            case "class Entities.PrimaryStorage" -> {
 
                 PrimaryStorage disk = (PrimaryStorage) component;
                 DiskSocket socket = disk.getSocket();
                 Integer freeSlots = freeDiskConnectors.get(socket);
                 if (freeSlots == null || freeSlots < 1) {
-                    throw new RuntimeException("Out of " + socket + " slots (tried to add " + disk + ")");
+                    throw new NoSlotsLeftException("Out of " + socket + " slots (tried to add " + disk + ")");
                 }
                 freeDiskConnectors.put(socket, freeSlots - 1);
                 storage.add(disk);
             }
 
-            case "RAM" -> {
-
+            case "class Entities.RAM" -> {
                 RAM ram = (RAM) component;
                 if (freeRAMSlots < 1) {
-                    throw new RuntimeException("Out of RAM slots (tried to add " + ram + ")");
+                    throw new NoSlotsLeftException("Out of RAM slots (tried to add " + ram + ")");
                 }
                 freeRAMSlots--;
                 this.ram.add(ram);

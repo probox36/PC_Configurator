@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public abstract class Component {
+public abstract class Component implements DBEntity {
 
     // hibernate хочет сквозную нумерацию для всех потомков component, но mysql не поддерживает sequence,
     // поэтому выкручиваемся таким образом

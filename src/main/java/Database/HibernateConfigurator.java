@@ -7,7 +7,9 @@ import org.hibernate.cfg.Configuration;
 
 public class HibernateConfigurator {
 
-    public static Session getSession() {
+    private static SessionFactory factory;
+
+    private static void createSessionFactory() {
 
         Configuration configuration = new Configuration();
         configuration.addAnnotatedClass(Case.class);
@@ -21,11 +23,19 @@ public class HibernateConfigurator {
         configuration.addAnnotatedClass(PrimaryStorage.class);
         configuration.addAnnotatedClass(RAM.class);
         configuration.addAnnotatedClass(Computer.class);
+        configuration.addAnnotatedClass(User.class);
+        configuration.addAnnotatedClass(Order.class);
         configuration.configure();
 
-        SessionFactory factory = configuration.buildSessionFactory();
-        return factory.openSession();
+        factory = configuration.buildSessionFactory();
 
+    }
+
+    public static Session getSession() {
+        if (factory == null) {
+            createSessionFactory();
+        }
+        return factory.openSession();
     }
 
 }
